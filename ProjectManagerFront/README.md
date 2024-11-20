@@ -7,7 +7,6 @@ A React frontend application built with Webpack for the Project Manager system.
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/download)
-- [Git](https://git-scm.com/downloads)
 
 ## Installation
 
