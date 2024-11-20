@@ -8,12 +8,15 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<Project> Projects { get; set; }
-    public DbSet<User> Users { get; set; }
-    public DbSet<ProjectTask> Tasks { get; set; }
+    public DbSet<Project> Projects { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<ProjectTask> ProjectTask { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        if (modelBuilder == null)
+            throw new ArgumentNullException(nameof(modelBuilder));
+
         // Configurar chaves primárias
         modelBuilder.Entity<Project>()
             .HasKey(p => p.Id);
