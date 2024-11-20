@@ -1,0 +1,47 @@
+# Build Folders
+bin/
+obj/
+
+# User-specific files
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ASP.NET specific
+wwwroot/node_modules/
+wwwroot/lib/
+
+# NuGet Packages
+*.nupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Tooling
+*.swp
+*.tmp
+
+# React-specific
+# Dependencies
+node_modules/
+
+# Production build
+build/
+
+# Environment variables
+.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dist
+dist/
