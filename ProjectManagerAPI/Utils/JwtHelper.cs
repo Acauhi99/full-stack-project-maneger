@@ -1,84 +1,44 @@
-using System.Globalization;
-using System.Security.Cryptography;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
-using System.Text.Json;
+using Microsoft.IdentityModel.Tokens;
 using ProjectManagerAPI.Models;
 
-public class JwtHelper
+namespace ProjectManagerAPI.Utils
 {
-    private readonly string _secret;
-
-    public JwtHelper(string secret)
+    public class JwtHelper
     {
-        _secret = secret;
-    }
+        private readonly IConfiguration _configuration;
 
-    public string GenerateToken(User user)
-    {
-        if (user == null)
-            throw new ArgumentNullException(nameof(user));
-
-        var header = new { alg = "HS256", typ = "JWT" };
-        var payload = new
+        public JwtHelper(IConfiguration configuration)
         {
-            sub = user.Id,
-            email = user.Email,
-            role = user.TipoUsuario.ToString(),
-            exp = DateTimeOffset.UtcNow.AddHours(2).ToUnixTimeSeconds()
-        };
+            _configuration = configuration;
+        }
 
-        string headerJson = JsonSerializer.Serialize(header);
-        string payloadJson = JsonSerializer.Serialize(payload);
+        public string GenerateToken(User user)
+        {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
 
-        string headerBase64 = Base64UrlEncode(headerJson);
-        string payloadBase64 = Base64UrlEncode(payloadJson);
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-        string unsignedToken = $"{headerBase64}.{payloadBase64}";
-        string signature = ComputeHmacSha256(unsignedToken, _secret);
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.TipoUsuario.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
 
-        return $"{unsignedToken}.{signature}";
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(2),
+                signingCredentials: credentials);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
     }
-
-    public bool ValidateToken(string token, out Dictionary<string, object>? payload)
-    {
-        if (token == null)
-            throw new ArgumentNullException(nameof(token));
-
-        payload = null;
-        var parts = token.Split('.');
-        if (parts.Length != 3) return false;
-
-        string unsignedToken = $"{parts[0]}.{parts[1]}";
-        string signature = ComputeHmacSha256(unsignedToken, _secret);
-
-        if (signature != parts[2]) return false;
-
-        var payloadJson = Base64UrlDecode(parts[1]);
-        payload = JsonSerializer.Deserialize<Dictionary<string, object>>(payloadJson);
-
-        if (payload != null && payload.ContainsKey("exp") &&
-            DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(payload["exp"], CultureInfo.InvariantCulture)).UtcDateTime < DateTime.UtcNow)
-            return false;
-
-        return payload != null;
-    }
-
-    private static string ComputeHmacSha256(string data, string secret)
-    {
-        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
-        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
-        return Base64UrlEncode(hash);
-    }
-
-    private static string Base64UrlEncode(string input) =>
-        Convert.ToBase64String(Encoding.UTF8.GetBytes(input))
-            .TrimEnd('=').Replace('+', '-').Replace('/', '_');
-
-    private static string Base64UrlEncode(byte[] input) =>
-        Convert.ToBase64String(input)
-            .TrimEnd('=').Replace('+', '-').Replace('/', '_');
-
-    private static string Base64UrlDecode(string input) =>
-        Encoding.UTF8.GetString(Convert.FromBase64String(
-            input.Replace('-', '+').Replace('_', '/').PadRight(input.Length + (4 - input.Length % 4) % 4, '=')));
 }
