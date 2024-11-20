@@ -1,10 +1,10 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using ProjectManagerAPI.Data;
 using ProjectManagerAPI.Services;
-using ProjectManagerAPI.Utils;
 using ProjectManagerAPI.Endpoints;
+using ProjectManagerAPI.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +14,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Serviços
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
-builder.Services.AddScoped<ITaskService, TaskService>();
-builder.Services.AddSingleton(new JwtHelper(builder.Configuration["Jwt:Secret"]));
+// builder.Services.AddScoped<IProjectService, ProjectService>();
+// builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddSingleton<JwtHelper>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -28,10 +28,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            ValidateIssuer = true,
+            ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]))
         };
     });
@@ -53,26 +55,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Middleware de Autenticação Personalizado
-app.Use(async (context, next) =>
+// Middleware de Error Handling
+app.UseExceptionHandler("/error");
+
+app.Map("/error", (HttpContext context) =>
 {
-    if (context.Request.Headers.ContainsKey("Authorization"))
-    {
-        var token = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-        var jwt = app.Services.GetRequiredService<JwtHelper>();
-        if (jwt.ValidateToken(token, out var payload))
-        {
-            var claims = new List<System.Security.Claims.Claim>
-            {
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, payload["sub"].ToString()),
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, payload["email"].ToString()),
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, payload["role"].ToString())
-            };
-            var identity = new System.Security.Claims.ClaimsIdentity(claims, "jwt");
-            context.User = new System.Security.Claims.ClaimsPrincipal(identity);
-        }
-    }
-    await next();
+    return Results.Problem("Ocorreu um erro interno.");
 });
 
 // Autenticação e Autorização Padrão
@@ -81,7 +69,7 @@ app.UseAuthorization();
 
 // Mapear Endpoints
 app.MapUserEndpoints();
-app.MapProjectEndpoints();
-app.MapTaskEndpoints();
+// app.MapProjectEndpoints();
+// app.MapTaskEndpoints();
 
 app.Run();
