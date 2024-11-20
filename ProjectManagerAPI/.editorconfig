@@ -1,0 +1,59 @@
+# EditorConfig é awesome: https://EditorConfig.org
+
+# Definições básicas
+root = true
+
+# Configurações gerais para todos os arquivos
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Configurações específicas para C# files
+[*.cs]
+indent_style = space
+indent_size = 4
+tab_width = 4
+dotnet_sort_system_directives_first = true
+csharp_new_line_before_members = true
+
+# Convenções de Naming
+dotnet_naming_rule.camel_case_rule.symbols = camel_case_symbols
+dotnet_naming_rule.camel_case_rule.style = camel_case_style
+dotnet_naming_rule.camel_case_rule.severity = suggestion
+
+dotnet_naming_rule.pascal_case_rule.symbols = pascal_case_symbols
+dotnet_naming_rule.pascal_case_rule.style = pascal_case_style
+dotnet_naming_rule.pascal_case_rule.severity = error
+
+dotnet_naming_symbols.camel_case_symbols.applicable_kinds = local, parameter
+dotnet_naming_symbols.camel_case_symbols.applicable_accessibilities = *
+dotnet_naming_symbols.camel_case_symbols.required_modifiers = 
+
+dotnet_naming_symbols.pascal_case_symbols.applicable_kinds = type, method, property, field, event
+dotnet_naming_symbols.pascal_case_symbols.applicable_accessibilities = public, internal
+dotnet_naming_symbols.pascal_case_symbols.required_modifiers = 
+
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# Regras de Análise
+dotnet_style_qualification_for_event = true:suggestion
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+
+# Preferências de Uso de 'var'
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+
+# Outras Regras de Formatação
+csharp_space_after_cast = true
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_before_open_square_brackets = false
+
+# Regras de Ordenação de Usings
+dotnet_sort_system_directives_first = true
