@@ -78,13 +78,32 @@ public class ProjectService : IProjectService
 
     public async Task<bool> DeleteProjectAsync(Guid id)
     {
-        var project = await _dbContext.Projects.FindAsync(id).ConfigureAwait(false);
+        var project = await _dbContext.Projects
+            .Include(p => p.Tarefas)
+            .FirstOrDefaultAsync(p => p.Id == id)
+            .ConfigureAwait(false);
         if (project == null)
             return false;
+
+        if (project.Tarefas.Any(t => !t.Concluida))
+            throw new InvalidOperationException("Não é possível excluir um projeto com tarefas ativas.");
 
         _dbContext.Projects.Remove(project);
         await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
         return true;
+    }
+
+    public async Task<IEnumerable<ProjectReportDTO>> GetTasksPerProjectAsync()
+    {
+        return await _dbContext.Projects
+            .Select(p => new ProjectReportDTO
+            {
+                ProjectId = p.Id,
+                ProjectName = p.Nome,
+                TaskCount = p.Tarefas.Count
+            })
+            .ToListAsync()
+            .ConfigureAwait(false);
     }
 }
