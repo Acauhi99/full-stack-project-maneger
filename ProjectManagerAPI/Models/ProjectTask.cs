@@ -6,7 +6,5 @@ public class ProjectTask
     public string Descricao { get; set; }
     public bool Concluida { get; set; }
     public Guid ProjetoId { get; set; }
-    public Project Projeto { get; set; }
     public Guid UsuarioId { get; set; }
-    public User Usuario { get; set; }
 }
