@@ -14,8 +14,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Serviços
 builder.Services.AddScoped<IUserService, UserService>();
-// builder.Services.AddScoped<IProjectService, ProjectService>();
-// builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IProjectTaskService, ProjectTaskService>();
 builder.Services.AddSingleton<JwtHelper>();
 
 // Swagger
@@ -69,7 +69,7 @@ app.UseAuthorization();
 
 // Mapear Endpoints
 app.MapUserEndpoints();
-// app.MapProjectEndpoints();
-// app.MapTaskEndpoints();
+app.MapProjectEndpoints();
+app.MapProjectTaskEndpoints();
 
 app.Run();
