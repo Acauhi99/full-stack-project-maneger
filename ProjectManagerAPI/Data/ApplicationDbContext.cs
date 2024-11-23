@@ -17,7 +17,7 @@ public class ApplicationDbContext : DbContext
         if (modelBuilder == null)
             throw new ArgumentNullException(nameof(modelBuilder));
 
-        // Configurar chaves primárias
+        // Primary Keys
         modelBuilder.Entity<Project>()
             .HasKey(p => p.Id);
 
@@ -27,15 +27,52 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<ProjectTask>()
             .HasKey(t => t.Id);
 
-        // Configurar relações
+        // Project -> ProjectTask relationship
         modelBuilder.Entity<Project>()
             .HasMany(p => p.Tarefas)
-            .WithOne(t => t.Projeto)
-            .HasForeignKey(t => t.ProjetoId);
+            .WithOne()
+            .HasForeignKey(t => t.ProjetoId)
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired();
 
+        // User -> ProjectTask relationship
         modelBuilder.Entity<User>()
             .HasMany(u => u.Tarefas)
-            .WithOne(t => t.Usuario)
-            .HasForeignKey(t => t.UsuarioId);
+            .WithOne()
+            .HasForeignKey(t => t.UsuarioId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired();
+
+        // Indexes
+        modelBuilder.Entity<ProjectTask>()
+            .HasIndex(t => t.ProjetoId);
+
+        modelBuilder.Entity<ProjectTask>()
+            .HasIndex(t => t.UsuarioId);
+
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
+
+        // Property configurations
+        modelBuilder.Entity<User>()
+            .Property(u => u.Email)
+            .IsRequired()
+            .HasMaxLength(255);
+
+        modelBuilder.Entity<User>()
+            .Property(u => u.Nome)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<Project>()
+            .Property(p => p.Nome)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<ProjectTask>()
+            .Property(t => t.Titulo)
+            .IsRequired()
+            .HasMaxLength(100);
     }
 }

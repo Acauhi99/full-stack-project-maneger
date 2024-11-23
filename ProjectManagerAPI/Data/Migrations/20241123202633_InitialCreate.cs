@@ -14,7 +14,7 @@ namespace ProjectManagerAPI.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Nome = table.Column<string>(type: "TEXT", nullable: false),
+                    Nome = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Descricao = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
@@ -27,8 +27,8 @@ namespace ProjectManagerAPI.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Nome = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
+                    Nome = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
                     Senha = table.Column<string>(type: "TEXT", nullable: false),
                     TipoUsuario = table.Column<int>(type: "INTEGER", nullable: false)
                 },
@@ -42,7 +42,7 @@ namespace ProjectManagerAPI.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Titulo = table.Column<string>(type: "TEXT", nullable: false),
+                    Titulo = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Descricao = table.Column<string>(type: "TEXT", nullable: false),
                     Concluida = table.Column<bool>(type: "INTEGER", nullable: false),
                     ProjetoId = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -62,7 +62,7 @@ namespace ProjectManagerAPI.Data.Migrations
                         column: x => x.UsuarioId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -74,6 +74,12 @@ namespace ProjectManagerAPI.Data.Migrations
                 name: "IX_ProjectTask_UsuarioId",
                 table: "ProjectTask",
                 column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Email",
+                table: "Users",
+                column: "Email",
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

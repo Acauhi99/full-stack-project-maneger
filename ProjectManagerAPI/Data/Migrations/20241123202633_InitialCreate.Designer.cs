@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ProjectManagerAPI.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241120163311_InitialCreate")]
+    [Migration("20241123202633_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -30,6 +30,7 @@ namespace ProjectManagerAPI.Data.Migrations
 
                     b.Property<string>("Nome")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -55,6 +56,7 @@ namespace ProjectManagerAPI.Data.Migrations
 
                     b.Property<string>("Titulo")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("UsuarioId")
@@ -77,10 +79,12 @@ namespace ProjectManagerAPI.Data.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
+                        .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Nome")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Senha")
@@ -92,26 +96,25 @@ namespace ProjectManagerAPI.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.ToTable("Users");
                 });
 
             modelBuilder.Entity("ProjectManagerAPI.Models.ProjectTask", b =>
                 {
-                    b.HasOne("ProjectManagerAPI.Models.Project", "Projeto")
+                    b.HasOne("ProjectManagerAPI.Models.Project", null)
                         .WithMany("Tarefas")
                         .HasForeignKey("ProjetoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ProjectManagerAPI.Models.User", "Usuario")
+                    b.HasOne("ProjectManagerAPI.Models.User", null)
                         .WithMany("Tarefas")
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Projeto");
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("ProjectManagerAPI.Models.Project", b =>
