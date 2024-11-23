@@ -11,6 +11,6 @@ public class User
 
 public enum TipoUsuario
 {
-    Admin,
-    Regular
+    Admin = 0,
+    Regular = 1
 }

@@ -36,7 +36,7 @@ public class RegisterUserDTO
     public string Senha { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "O tipo de usuário é obrigatório.")]
-    public TipoUsuario TipoUsuario { get; set; }
+    public TipoUsuario TipoUsuario { get; set; } = TipoUsuario.Regular;
 }
 
 public class LoginUserDTO
