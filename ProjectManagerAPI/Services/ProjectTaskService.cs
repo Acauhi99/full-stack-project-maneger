@@ -99,4 +99,36 @@ public class ProjectTaskService : IProjectTaskService
 
         return true;
     }
+
+    public async Task<IEnumerable<ProjectTaskDTO>> GetTasksByUserIdAsync(Guid userId)
+    {
+        return await _dbContext.ProjectTask
+            .Where(t => t.UsuarioId == userId)
+            .Select(t => new ProjectTaskDTO
+            {
+                Id = t.Id,
+                Titulo = t.Titulo,
+                Descricao = t.Descricao,
+                Concluida = t.Concluida,
+                ProjetoId = t.ProjetoId,
+                UsuarioId = t.UsuarioId
+            })
+            .ToListAsync()
+            .ConfigureAwait(false);
+    }
+
+    public async Task<bool> MarkTaskAsCompletedAsync(Guid id, Guid userId)
+    {
+        var task = await _dbContext.ProjectTask
+            .FirstOrDefaultAsync(t => t.Id == id && t.UsuarioId == userId)
+            .ConfigureAwait(false);
+
+        if (task == null)
+            return false;
+
+        task.Concluida = true;
+        await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+
+        return true;
+    }
 }
