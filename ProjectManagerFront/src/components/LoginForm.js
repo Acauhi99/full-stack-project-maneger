@@ -1,54 +1,94 @@
-import React, { useState } from "react";
-import { Container, TextField, Button, Typography } from "@mui/material";
+import React from "react";
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Link,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/userService";
 import { toast } from "react-toastify";
+import { Formik, Form, Field } from "formik";
+import * as Yup from "yup";
+
+const validationSchema = Yup.object().shape({
+  email: Yup.string().email("Email inválido").required("Email é obrigatório"),
+  password: Yup.string().required("Senha é obrigatória"),
+});
 
 function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      const response = await login(email, password);
+      const response = await login(values.email, values.password);
       localStorage.setItem("token", response.token);
       toast.success("Login bem-sucedido!");
       navigate("/projects");
     } catch (error) {
       toast.error("Erro no login. Tente novamente.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom>
-        Login
-      </Typography>
-      <form onSubmit={handleSubmit}>
-        <TextField
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          fullWidth
-          margin="normal"
-          required
-        />
-        <TextField
-          label="Senha"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          fullWidth
-          margin="normal"
-          required
-        />
-        <Button type="submit" variant="contained" color="primary">
+    <Container maxWidth="sm">
+      <Box sx={{ mt: 8 }}>
+        <Typography variant="h4" gutterBottom>
           Login
-        </Button>
-      </form>
+        </Typography>
+        <Formik
+          initialValues={{ email: "", password: "" }}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ isSubmitting, errors, touched }) => (
+            <Form>
+              <Field
+                as={TextField}
+                label="Email"
+                name="email"
+                type="email"
+                fullWidth
+                margin="normal"
+                error={touched.email && !!errors.email}
+                helperText={touched.email && errors.email}
+              />
+              <Field
+                as={TextField}
+                label="Senha"
+                name="password"
+                type="password"
+                fullWidth
+                margin="normal"
+                error={touched.password && !!errors.password}
+                helperText={touched.password && errors.password}
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                disabled={isSubmitting}
+                sx={{ mt: 2 }}
+              >
+                Login
+              </Button>
+            </Form>
+          )}
+        </Formik>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="body2">
+            Não possui conta?{" "}
+            <Link href="/register" variant="body2">
+              Cadastre-se
+            </Link>
+          </Typography>
+        </Box>
+      </Box>
     </Container>
   );
 }
