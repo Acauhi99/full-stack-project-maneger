@@ -21,6 +21,15 @@ public static class ProjectEndpoints
 
         app.MapDelete("/projects/{id:guid}", DeleteProject)
             .RequireAuthorization("Admin");
+
+        app.MapGet("/projects/reports", GetTasksPerProject)
+            .RequireAuthorization("Admin");
+    }
+
+    private static async Task<IResult> GetTasksPerProject(IProjectService projectService)
+    {
+        var report = await projectService.GetTasksPerProjectAsync().ConfigureAwait(false);
+        return Results.Ok(report);
     }
 
     private static async Task<IResult> GetAllProjects(IProjectService projectService)
