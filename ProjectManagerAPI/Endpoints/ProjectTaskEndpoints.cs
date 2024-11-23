@@ -21,6 +21,32 @@ public static class ProjectTaskEndpoints
 
         app.MapDelete("/tasks/{id:guid}", DeleteTask)
             .RequireAuthorization("Admin");
+
+        app.MapGet("/user/tasks", GetUserTasks)
+            .RequireAuthorization("Regular");
+
+        app.MapPut("/user/tasks/{id:guid}/complete", CompleteUserTask)
+            .RequireAuthorization("Regular");
+    }
+
+    private static async Task<IResult> GetUserTasks(IProjectTaskService taskService, HttpContext context)
+    {
+        var userId = context.User.FindFirst("id")?.Value;
+        if (userId == null)
+            return Results.Unauthorized();
+
+        var tasks = await taskService.GetTasksByUserIdAsync(Guid.Parse(userId)).ConfigureAwait(false);
+        return Results.Ok(tasks);
+    }
+
+    private static async Task<IResult> CompleteUserTask(Guid id, IProjectTaskService taskService, HttpContext context)
+    {
+        var userId = context.User.FindFirst("id")?.Value;
+        if (userId == null)
+            return Results.Unauthorized();
+
+        var success = await taskService.MarkTaskAsCompletedAsync(id, Guid.Parse(userId)).ConfigureAwait(false);
+        return success ? Results.NoContent() : Results.BadRequest("Não foi possível marcar a tarefa como concluída.");
     }
 
     private static async Task<IResult> GetAllTasks(IProjectTaskService taskService)
