@@ -1,23 +1,63 @@
 import api from "./api";
+import { handleApiError } from "./apiErrors";
 
-const getProjects = async () => {
-  const response = await api.get("/projects");
-  return response.data;
+export const projectService = {
+  async getProjects() {
+    try {
+      const response = await api.get("/projects");
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async getProject(id) {
+    try {
+      const response = await api.get(`/projects/${id}`);
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async createProject(projectData) {
+    try {
+      const response = await api.post("/projects", {
+        nome: projectData.nome,
+        descricao: projectData.descricao,
+      });
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async updateProject(id, projectData) {
+    try {
+      const response = await api.put(`/projects/${id}`, {
+        nome: projectData.nome,
+        descricao: projectData.descricao,
+      });
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async deleteProject(id) {
+    try {
+      await api.delete(`/projects/${id}`);
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async getProjectReports() {
+    try {
+      const response = await api.get("/projects/reports");
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
 };
-
-const createProject = async (projectData) => {
-  const response = await api.post("/projects", projectData);
-  return response.data;
-};
-
-const updateProject = async (projectId, projectData) => {
-  const response = await api.put(`/projects/${projectId}`, projectData);
-  return response.data;
-};
-
-const deleteProject = async (projectId) => {
-  const response = await api.delete(`/projects/${projectId}`);
-  return response.data;
-};
-
-export { getProjects, createProject, updateProject, deleteProject };

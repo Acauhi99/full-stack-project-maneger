@@ -1,26 +1,70 @@
 import api from "./api";
+import { handleApiError } from "./apiErrors";
 
-const getTasks = async (projectId) => {
-  const response = await api.get(`/projects/${projectId}/tasks`);
-  return response.data;
+export const taskService = {
+  async getTasks() {
+    try {
+      const response = await api.get("/tasks");
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async getUserTasks() {
+    try {
+      const response = await api.get("/tasks/user");
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async getTask(id) {
+    try {
+      const response = await api.get(`/tasks/${id}`);
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async createTask(taskData) {
+    try {
+      const response = await api.post("/tasks", {
+        titulo: taskData.titulo,
+        descricao: taskData.descricao,
+        projetoId: taskData.projetoId,
+        usuarioId: taskData.usuarioId,
+      });
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async updateTask(id, taskData) {
+    try {
+      const response = await api.put(`/tasks/${id}`, taskData);
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async deleteTask(id) {
+    try {
+      await api.delete(`/tasks/${id}`);
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async completeTask(taskId) {
+    try {
+      await api.put("/tasks/user/complete", { taskId });
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
 };
-
-const createTask = async (projectId, taskData) => {
-  const response = await api.post(`/projects/${projectId}/tasks`, taskData);
-  return response.data;
-};
-
-const updateTask = async (projectId, taskId, taskData) => {
-  const response = await api.put(
-    `/projects/${projectId}/tasks/${taskId}`,
-    taskData
-  );
-  return response.data;
-};
-
-const deleteTask = async (projectId, taskId) => {
-  const response = await api.delete(`/projects/${projectId}/tasks/${taskId}`);
-  return response.data;
-};
-
-export { getTasks, createTask, updateTask, deleteTask };

@@ -1,13 +1,28 @@
 import api from "./api";
+import { handleApiError } from "./apiErrors";
 
-const login = async (email, password) => {
-  const response = await api.post("/users/login", { email, password });
-  return response.data;
+export const userService = {
+  async login(email, senha) {
+    try {
+      const response = await api.post("/users/login", { email, senha });
+      localStorage.setItem("token", response.data.token);
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async register(userData) {
+    try {
+      const response = await api.post("/users/register", {
+        nome: userData.nome,
+        email: userData.email,
+        senha: userData.senha,
+        tipoUsuario: userData.tipoUsuario,
+      });
+      return response.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
 };
-
-const register = async (userData) => {
-  const response = await api.post("/users/register", userData);
-  return response.data;
-};
-
-export { login, register };
