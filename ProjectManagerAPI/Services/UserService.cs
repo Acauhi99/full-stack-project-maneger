@@ -83,6 +83,7 @@ namespace ProjectManagerAPI.Services
                     return Result.Failure<string>("Email ou senha incorretos");
 
                 var token = _jwtHelper.GenerateToken(user);
+
                 return Result.Success(token);
             }
             catch (DbUpdateException dbEx)

@@ -32,6 +32,7 @@ public class ProjectTaskService : IProjectTaskService
     public async Task<ProjectTaskDTO?> GetTaskByIdAsync(Guid id)
     {
         var task = await _dbContext.ProjectTask.FindAsync(id).ConfigureAwait(false);
+
         if (task == null)
             return null;
 
@@ -73,6 +74,7 @@ public class ProjectTaskService : IProjectTaskService
             throw new ArgumentNullException(nameof(taskDto));
 
         var task = await _dbContext.ProjectTask.FindAsync(id).ConfigureAwait(false);
+
         if (task == null)
             return null;
 
@@ -91,6 +93,7 @@ public class ProjectTaskService : IProjectTaskService
     public async Task<bool> DeleteTaskAsync(Guid id)
     {
         var task = await _dbContext.ProjectTask.FindAsync(id).ConfigureAwait(false);
+
         if (task == null)
             return false;
 

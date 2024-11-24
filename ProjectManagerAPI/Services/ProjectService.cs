@@ -29,6 +29,7 @@ public class ProjectService : IProjectService
     public async Task<ProjectDTO?> GetProjectByIdAsync(Guid id)
     {
         var project = await _dbContext.Projects.FindAsync(id).ConfigureAwait(false);
+
         if (project == null)
             return null;
 
@@ -64,6 +65,7 @@ public class ProjectService : IProjectService
             throw new ArgumentNullException(nameof(projectDto));
 
         var project = await _dbContext.Projects.FindAsync(id).ConfigureAwait(false);
+
         if (project == null)
             return null;
 
@@ -82,6 +84,7 @@ public class ProjectService : IProjectService
             .Include(p => p.Tarefas)
             .FirstOrDefaultAsync(p => p.Id == id)
             .ConfigureAwait(false);
+
         if (project == null)
             return false;
 
