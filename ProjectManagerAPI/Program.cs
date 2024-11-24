@@ -6,6 +6,8 @@ using ProjectManagerAPI.Services;
 using ProjectManagerAPI.Endpoints;
 using ProjectManagerAPI.Utils;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +20,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("default", policy =>
     {
-        policy.WithOrigins(builder.Configuration["AllowedOrigins"])
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -58,6 +60,24 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Regular", policy => policy.RequireRole("Regular"));
 });
 
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+// If you're using MVC, also add:
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+// Keep the Swagger configuration as is:
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "Project Manager API", Version = "v1" });
+    c.UseInlineDefinitionsForEnums();
+});
+
 var app = builder.Build();
 
 // Configuração do Middleware
@@ -68,6 +88,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("default");
 app.UseExceptionHandler("/error");
 app.UseAuthentication();
 app.UseAuthorization();
