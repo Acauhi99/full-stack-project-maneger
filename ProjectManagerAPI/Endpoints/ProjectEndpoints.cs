@@ -2,6 +2,7 @@ namespace ProjectManagerAPI.Endpoints;
 
 using ProjectManagerAPI.Services;
 using ProjectManagerAPI.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 public static class ProjectEndpoints
 {
@@ -26,45 +27,112 @@ public static class ProjectEndpoints
             .RequireAuthorization("Admin");
     }
 
-    private static async Task<IResult> GetTasksPerProject(IProjectService projectService)
-    {
-        var report = await projectService.GetTasksPerProjectAsync().ConfigureAwait(false);
-
-        return Results.Ok(report);
-    }
-
-    private static async Task<IResult> GetAllProjects(IProjectService projectService)
-    {
-        var projects = await projectService.GetAllProjectsAsync().ConfigureAwait(false);
-
-        return Results.Ok(projects);
-    }
-
-    private static async Task<IResult> GetProjectById(Guid id, IProjectService projectService)
-    {
-        var project = await projectService.GetProjectByIdAsync(id).ConfigureAwait(false);
-
-        return project == null ? Results.NotFound() : Results.Ok(project);
-    }
-
     private static async Task<IResult> CreateProject(ProjectDTO projectDto, IProjectService projectService)
     {
-        var createdProject = await projectService.CreateProjectAsync(projectDto).ConfigureAwait(false);
-
-        return Results.Created(new Uri($"/projects/{createdProject.Id}", UriKind.Relative), createdProject);
+        try
+        {
+            var createdProject = await projectService.CreateProjectAsync(projectDto).ConfigureAwait(false);
+            var uri = new Uri($"/projects/{createdProject.Id}", UriKind.Relative);
+            return Results.Created(uri, createdProject);
+        }
+        catch (ArgumentNullException)
+        {
+            return Results.BadRequest(new { message = "Dados do projeto são inválidos." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { message = ex.Message });
+        }
+        catch (DbUpdateException)
+        {
+            return Results.BadRequest(new { message = "Erro ao salvar o projeto no banco de dados." });
+        }
     }
 
     private static async Task<IResult> UpdateProject(Guid id, UpdateProjectDTO projectDto, IProjectService projectService)
     {
-        var updatedProject = await projectService.UpdateProjectAsync(id, projectDto).ConfigureAwait(false);
-
-        return updatedProject == null ? Results.NotFound() : Results.Ok(updatedProject);
+        try
+        {
+            var updatedProject = await projectService.UpdateProjectAsync(id, projectDto).ConfigureAwait(false);
+            return updatedProject == null
+                ? Results.NotFound(new { message = "Projeto não encontrado." })
+                : Results.Ok(updatedProject);
+        }
+        catch (ArgumentNullException)
+        {
+            return Results.BadRequest(new { message = "Dados do projeto são inválidos." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { message = ex.Message });
+        }
+        catch (DbUpdateException)
+        {
+            return Results.BadRequest(new { message = "Erro ao atualizar o projeto no banco de dados." });
+        }
     }
 
     private static async Task<IResult> DeleteProject(Guid id, IProjectService projectService)
     {
-        var success = await projectService.DeleteProjectAsync(id).ConfigureAwait(false);
+        try
+        {
+            var success = await projectService.DeleteProjectAsync(id).ConfigureAwait(false);
+            return success
+                ? Results.NoContent()
+                : Results.NotFound(new { message = "Projeto não encontrado." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { message = ex.Message });
+        }
+        catch (DbUpdateException)
+        {
+            return Results.BadRequest(new { message = "Erro ao excluir o projeto no banco de dados." });
+        }
+    }
 
-        return success ? Results.NoContent() : Results.NotFound();
+    private static async Task<IResult> GetProjectById(Guid id, IProjectService projectService)
+    {
+        try
+        {
+            var project = await projectService.GetProjectByIdAsync(id).ConfigureAwait(false);
+            return project == null
+                ? Results.NotFound(new { message = "Projeto não encontrado." })
+                : Results.Ok(project);
+        }
+        catch (DbUpdateException)
+        {
+            return Results.BadRequest(new { message = "Erro ao acessar o banco de dados." });
+        }
+    }
+
+    private static async Task<IResult> GetAllProjects(IProjectService projectService)
+    {
+        try
+        {
+            var projects = await projectService.GetAllProjectsAsync().ConfigureAwait(false);
+            return Results.Ok(projects);
+        }
+        catch (DbUpdateException)
+        {
+            return Results.BadRequest(new { message = "Erro ao acessar o banco de dados." });
+        }
+    }
+
+    private static async Task<IResult> GetTasksPerProject(IProjectService projectService)
+    {
+        try
+        {
+            var report = await projectService.GetTasksPerProjectAsync().ConfigureAwait(false);
+            return Results.Ok(report);
+        }
+        catch (DbUpdateException)
+        {
+            return Results.BadRequest(new { message = "Erro ao acessar o banco de dados." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { message = ex.Message });
+        }
     }
 }
