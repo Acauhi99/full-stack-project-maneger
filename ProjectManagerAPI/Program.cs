@@ -78,6 +78,11 @@ builder.Services.AddSwaggerGen(c =>
     c.UseInlineDefinitionsForEnums();
 });
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(7009); // Porta HTTP
+});
+
 var app = builder.Build();
 
 // Configuração do Middleware
@@ -87,7 +92,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseCors("default");
 app.UseExceptionHandler("/error");
 app.UseAuthentication();
