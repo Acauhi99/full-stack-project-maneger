@@ -72,4 +72,12 @@ app.MapUserEndpoints();
 app.MapProjectEndpoints();
 app.MapProjectTaskEndpoints();
 
+
+// Endpoint de Bem-vindo
+app.MapGet("/", () => Results.Ok(new
+{
+    message = "Bem Vindo ao Project Manager API",
+    documentation = "/swagger/index.html"
+}));
+
 app.Run();
