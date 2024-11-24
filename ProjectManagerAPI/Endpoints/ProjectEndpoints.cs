@@ -7,9 +7,11 @@ public static class ProjectEndpoints
 {
     public static void MapProjectEndpoints(this WebApplication app)
     {
-        app.MapGet("/projects", GetAllProjects);
+        app.MapGet("/projects", GetAllProjects)
+            .RequireAuthorization();
 
-        app.MapGet("/projects/{id:guid}", GetProjectById);
+        app.MapGet("/projects/{id:guid}", GetProjectById)
+            .RequireAuthorization();
 
         app.MapPost("/projects", CreateProject)
             .RequireAuthorization("Admin");
