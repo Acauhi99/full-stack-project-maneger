@@ -5,12 +5,24 @@ using System.Text;
 using ProjectManagerAPI.Services;
 using ProjectManagerAPI.Endpoints;
 using ProjectManagerAPI.Utils;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuração do DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Configuração do CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("default", policy =>
+    {
+        policy.WithOrigins(builder.Configuration["AllowedOrigins"])
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 // Serviços
 builder.Services.AddScoped<IUserService, UserService>();
@@ -34,7 +46,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
+            NameClaimType = ClaimTypes.NameIdentifier,
+            RoleClaimType = ClaimTypes.Role
         };
     });
 
@@ -54,16 +68,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// Middleware de Error Handling
 app.UseExceptionHandler("/error");
-
-app.Map("/error", (HttpContext context) =>
-{
-    return Results.Problem("Ocorreu um erro interno.");
-});
-
-// Autenticação e Autorização Padrão
 app.UseAuthentication();
 app.UseAuthorization();
 
