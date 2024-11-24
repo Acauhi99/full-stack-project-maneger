@@ -52,7 +52,7 @@ public static class ProjectEndpoints
         return Results.Created(new Uri($"/projects/{createdProject.Id}", UriKind.Relative), createdProject);
     }
 
-    private static async Task<IResult> UpdateProject(Guid id, ProjectDTO projectDto, IProjectService projectService)
+    private static async Task<IResult> UpdateProject(Guid id, UpdateProjectDTO projectDto, IProjectService projectService)
     {
         var updatedProject = await projectService.UpdateProjectAsync(id, projectDto).ConfigureAwait(false);
 

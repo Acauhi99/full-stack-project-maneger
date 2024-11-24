@@ -28,7 +28,10 @@ public class ProjectService : IProjectService
 
     public async Task<ProjectDTO?> GetProjectByIdAsync(Guid id)
     {
-        var project = await _dbContext.Projects.FindAsync(id).ConfigureAwait(false);
+        var project = await _dbContext.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == id)
+            .ConfigureAwait(false);
 
         if (project == null)
             return null;
@@ -59,7 +62,7 @@ public class ProjectService : IProjectService
         return projectDto;
     }
 
-    public async Task<ProjectDTO?> UpdateProjectAsync(Guid id, ProjectDTO projectDto)
+    public async Task<ProjectResponseDTO?> UpdateProjectAsync(Guid id, UpdateProjectDTO projectDto)
     {
         if (projectDto == null)
             throw new ArgumentNullException(nameof(projectDto));
@@ -69,13 +72,18 @@ public class ProjectService : IProjectService
         if (project == null)
             return null;
 
-        project.Nome = projectDto.Nome;
-        project.Descricao = projectDto.Descricao;
+        if (projectDto.Nome != null)
+            project.Nome = projectDto.Nome;
+        if (projectDto.Descricao != null)
+            project.Descricao = projectDto.Descricao;
 
-        _dbContext.Projects.Update(project);
         await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-        return projectDto;
+        return new ProjectResponseDTO
+        {
+            Nome = project.Nome,
+            Descricao = project.Descricao
+        };
     }
 
     public async Task<bool> DeleteProjectAsync(Guid id)
