@@ -47,16 +47,24 @@ public class ProjectTaskService : IProjectTaskService
         };
     }
 
-    public async Task<ProjectTaskDTO> CreateTaskAsync(ProjectTaskDTO taskDto)
+    public async Task<ProjectTaskDTO> CreateTaskAsync(CreateProjectTaskDTO taskDto)
     {
         if (taskDto == null)
             throw new ArgumentNullException(nameof(taskDto));
+
+        var projectExists = await _dbContext.Projects.AnyAsync(p => p.Id == taskDto.ProjetoId).ConfigureAwait(false);
+        if (!projectExists)
+            throw new InvalidOperationException("Projeto não encontrado.");
+
+        var userExists = await _dbContext.Users.AnyAsync(u => u.Id == taskDto.UsuarioId).ConfigureAwait(false);
+        if (!userExists)
+            throw new InvalidOperationException("Usuário não encontrado.");
 
         var task = new ProjectTask
         {
             Titulo = taskDto.Titulo,
             Descricao = taskDto.Descricao,
-            Concluida = taskDto.Concluida,
+            Concluida = false,
             ProjetoId = taskDto.ProjetoId,
             UsuarioId = taskDto.UsuarioId
         };
@@ -64,30 +72,58 @@ public class ProjectTaskService : IProjectTaskService
         _dbContext.ProjectTask.Add(task);
         await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-        taskDto.Id = task.Id;
-        return taskDto;
+        return new ProjectTaskDTO
+        {
+            Id = task.Id,
+            Titulo = task.Titulo,
+            Descricao = task.Descricao,
+            Concluida = task.Concluida,
+            ProjetoId = task.ProjetoId,
+            UsuarioId = task.UsuarioId
+        };
     }
 
-    public async Task<ProjectTaskDTO?> UpdateTaskAsync(Guid id, ProjectTaskDTO taskDto)
+    public async Task<ProjectTaskDTO?> UpdateTaskAsync(Guid id, UpdateTaskDTO taskDto)
     {
         if (taskDto == null)
             throw new ArgumentNullException(nameof(taskDto));
 
         var task = await _dbContext.ProjectTask.FindAsync(id).ConfigureAwait(false);
-
         if (task == null)
             return null;
 
-        task.Titulo = taskDto.Titulo;
-        task.Descricao = taskDto.Descricao;
-        task.Concluida = taskDto.Concluida;
-        task.ProjetoId = taskDto.ProjetoId;
-        task.UsuarioId = taskDto.UsuarioId;
+        if (taskDto.Titulo != null)
+            task.Titulo = taskDto.Titulo;
+        if (taskDto.Descricao != null)
+            task.Descricao = taskDto.Descricao;
+        if (taskDto.Concluida.HasValue)
+            task.Concluida = taskDto.Concluida.Value;
+        if (taskDto.ProjetoId.HasValue)
+        {
+            var projectExists = await _dbContext.Projects.AnyAsync(p => p.Id == taskDto.ProjetoId).ConfigureAwait(false);
+            if (!projectExists)
+                throw new InvalidOperationException("Projeto não encontrado.");
+            task.ProjetoId = taskDto.ProjetoId.Value;
+        }
+        if (taskDto.UsuarioId.HasValue)
+        {
+            var userExists = await _dbContext.Users.AnyAsync(u => u.Id == taskDto.UsuarioId).ConfigureAwait(false);
+            if (!userExists)
+                throw new InvalidOperationException("Usuário não encontrado.");
+            task.UsuarioId = taskDto.UsuarioId.Value;
+        }
 
-        _dbContext.ProjectTask.Update(task);
         await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-        return taskDto;
+        return new ProjectTaskDTO
+        {
+            Id = task.Id,
+            Titulo = task.Titulo,
+            Descricao = task.Descricao,
+            Concluida = task.Concluida,
+            ProjetoId = task.ProjetoId,
+            UsuarioId = task.UsuarioId
+        };
     }
 
     public async Task<bool> DeleteTaskAsync(Guid id)
@@ -120,13 +156,16 @@ public class ProjectTaskService : IProjectTaskService
             .ConfigureAwait(false);
     }
 
-    public async Task<bool> MarkTaskAsCompletedAsync(Guid id, Guid userId)
+    public async Task<bool> MarkTaskAsCompletedAsync(Guid taskId, Guid userId)
     {
         var task = await _dbContext.ProjectTask
-            .FirstOrDefaultAsync(t => t.Id == id && t.UsuarioId == userId)
+            .FirstOrDefaultAsync(t => t.Id == taskId)
             .ConfigureAwait(false);
 
         if (task == null)
+            return false;
+
+        if (task.UsuarioId != userId)
             return false;
 
         task.Concluida = true;

@@ -2,6 +2,7 @@ namespace ProjectManagerAPI.Endpoints;
 
 using ProjectManagerAPI.Services;
 using ProjectManagerAPI.DTOs;
+using System.Security.Claims;
 
 public static class ProjectTaskEndpoints
 {
@@ -22,16 +23,16 @@ public static class ProjectTaskEndpoints
         app.MapDelete("/tasks/{id:guid}", DeleteTask)
             .RequireAuthorization("Admin");
 
-        app.MapGet("/user/tasks", GetUserTasks)
-            .RequireAuthorization("Regular");
+        app.MapGet("/tasks/user", GetUserTasks)
+            .RequireAuthorization();
 
-        app.MapPut("/user/tasks/{id:guid}/complete", CompleteUserTask)
+        app.MapPut("/tasks/user/complete", CompleteUserTask)
             .RequireAuthorization("Regular");
     }
 
     private static async Task<IResult> GetUserTasks(IProjectTaskService taskService, HttpContext context)
     {
-        var userId = context.User.FindFirst("id")?.Value;
+        var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         if (userId == null)
             return Results.Unauthorized();
@@ -41,16 +42,18 @@ public static class ProjectTaskEndpoints
         return Results.Ok(tasks);
     }
 
-    private static async Task<IResult> CompleteUserTask(Guid id, IProjectTaskService taskService, HttpContext context)
+    private static async Task<IResult> CompleteUserTask(CompleteTaskDTO request, IProjectTaskService taskService, HttpContext context)
     {
-        var userId = context.User.FindFirst("id")?.Value;
-
+        var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
             return Results.Unauthorized();
 
-        var success = await taskService.MarkTaskAsCompletedAsync(id, Guid.Parse(userId)).ConfigureAwait(false);
+        var success = await taskService.MarkTaskAsCompletedAsync(request.TaskId, Guid.Parse(userId))
+            .ConfigureAwait(false);
 
-        return success ? Results.NoContent() : Results.BadRequest("Não foi possível marcar a tarefa como concluída.");
+        return success
+            ? Results.NoContent()
+            : Results.BadRequest(new { message = "Não foi possível marcar a tarefa como concluída." });
     }
 
     private static async Task<IResult> GetAllTasks(IProjectTaskService taskService)
@@ -67,18 +70,25 @@ public static class ProjectTaskEndpoints
         return task == null ? Results.NotFound() : Results.Ok(task);
     }
 
-    private static async Task<IResult> CreateTask(ProjectTaskDTO taskDto, IProjectTaskService taskService)
+    private static async Task<IResult> CreateTask(CreateProjectTaskDTO taskDto, IProjectTaskService taskService)
     {
         var createdTask = await taskService.CreateTaskAsync(taskDto).ConfigureAwait(false);
+        var uri = new Uri($"/tasks/{createdTask.Id}", UriKind.Relative);
 
-        return Results.Created(new Uri($"/tasks/{createdTask.Id}", UriKind.Relative), createdTask);
+        return Results.Created(uri, createdTask);
     }
 
-    private static async Task<IResult> UpdateTask(Guid id, ProjectTaskDTO taskDto, IProjectTaskService taskService)
+    private static async Task<IResult> UpdateTask(Guid id, UpdateTaskDTO taskDto, IProjectTaskService taskService)
     {
-        var updatedTask = await taskService.UpdateTaskAsync(id, taskDto).ConfigureAwait(false);
-
-        return updatedTask == null ? Results.NotFound() : Results.Ok(updatedTask);
+        try
+        {
+            var updatedTask = await taskService.UpdateTaskAsync(id, taskDto).ConfigureAwait(false);
+            return updatedTask == null ? Results.NotFound() : Results.Ok(updatedTask);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { message = ex.Message });
+        }
     }
 
     private static async Task<IResult> DeleteTask(Guid id, IProjectTaskService taskService)
