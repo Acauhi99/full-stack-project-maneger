@@ -1,24 +1,24 @@
-# Project Manager System
+# Sistema Gerenciador de Projetos
 
-## 📋 Description
+## 📋 Descrição
 
-Project Manager is a web application built with ASP.NET Web API and React that allows managing projects and tasks with different user roles and permissions. The system uses SQLite database with Entity Framework for data persistence and JWT tokens for secure authentication.
+O Gerenciador de Projetos é uma aplicação web construída com ASP.NET Web API e React que permite gerenciar projetos e tarefas com diferentes funções e permissões de usuário. O sistema utiliza banco de dados SQLite com Entity Framework para persistência de dados e tokens JWT para autenticação segura.
 
-## 👥 Team Members
+## 👥 Membros da Equipe
 
 - [Fernanda Rooke](https://github.com/FernandaRooke)
 - [Arthur Medeiros](https://github.com/medeirosdevv)
 - [Lucas Menon](https://github.com/Menon04)
 - [Mateus Acauhi](https://github.com/Acauhi99)
 
-## 🔧 Technical Stack
+## 🔧 Stack Técnica
 
 ### Backend
 
 - ASP.NET Web API
 - Entity Framework Core
-- SQLite Database
-- JWT Authentication
+- Banco de Dados SQLite
+- Autenticação JWT
 - C#
 
 ### Frontend
@@ -27,10 +27,10 @@ Project Manager is a web application built with ASP.NET Web API and React that a
 - Webpack
 - JavaScript
 
-## 🚀 Features
+## 🚀 Funcionalidades
 
-- User authentication and authorization with JWT tokens
-- Two user roles with different permissions
-- CRUD operations for Projects and Tasks entities
-- N:N relationship between Projects and Users
-- 1:N relationship between Projects and Tasks
+- Autenticação e autorização de usuários com tokens JWT
+- Dois níveis de usuário com diferentes permissões
+- Operações CRUD para entidades de Projetos e Tarefas
+- Relacionamento N:N entre Projetos e Usuários
+- Relacionamento 1:N entre Projetos e Tarefas
