@@ -1,4 +1,5 @@
 namespace ProjectManagerAPI.Models;
+using System.Text.Json.Serialization;
 public class User
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -9,6 +10,7 @@ public class User
     public ICollection<ProjectTask> Tarefas { get; set; }
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum TipoUsuario
 {
     Admin = 0,
