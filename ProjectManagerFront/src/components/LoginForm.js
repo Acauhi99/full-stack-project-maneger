@@ -8,14 +8,19 @@ import {
   Link,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { login } from "../services/userService";
+import { userService } from "../services/userService";
 import { toast } from "react-toastify";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 
 const validationSchema = Yup.object().shape({
-  email: Yup.string().email("Email inválido").required("Email é obrigatório"),
-  password: Yup.string().required("Senha é obrigatória"),
+  email: Yup.string()
+    .email("Email inválido")
+    .required("Email é obrigatório")
+    .max(100, "Email deve ter no máximo 100 caracteres"),
+  senha: Yup.string()
+    .required("Senha é obrigatória")
+    .min(6, "Senha deve ter no mínimo 6 caracteres"),
 });
 
 function LoginForm() {
@@ -23,12 +28,17 @@ function LoginForm() {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      const response = await login(values.email, values.password);
-      localStorage.setItem("token", response.token);
-      toast.success("Login bem-sucedido!");
+      const response = await userService.login(values.email, values.senha);
+      toast.success(response.message || "Login realizado com sucesso!");
       navigate("/projects");
     } catch (error) {
-      toast.error("Erro no login. Tente novamente.");
+      if (error.status === 422) {
+        toast.error("Email ou senha incorretos");
+      } else if (error.status === 400) {
+        toast.error("Erro ao acessar banco de dados");
+      } else {
+        toast.error("Erro no servidor. Tente novamente mais tarde.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -41,7 +51,7 @@ function LoginForm() {
           Login
         </Typography>
         <Formik
-          initialValues={{ email: "", password: "" }}
+          initialValues={{ email: "", senha: "" }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
@@ -60,12 +70,12 @@ function LoginForm() {
               <Field
                 as={TextField}
                 label="Senha"
-                name="password"
+                name="senha"
                 type="password"
                 fullWidth
                 margin="normal"
-                error={touched.password && !!errors.password}
-                helperText={touched.password && errors.password}
+                error={touched.senha && !!errors.senha}
+                helperText={touched.senha && errors.senha}
               />
               <Button
                 type="submit"

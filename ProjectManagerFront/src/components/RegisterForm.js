@@ -1,15 +1,37 @@
 import React from "react";
-import { Container, TextField, Button, Typography, Box } from "@mui/material";
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  FormControl,
+  FormLabel,
+  FormHelperText,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { register } from "../services/userService";
+import { userService } from "../services/userService";
 import { toast } from "react-toastify";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 
 const validationSchema = Yup.object().shape({
-  name: Yup.string().required("Nome é obrigatório"),
-  email: Yup.string().email("Email inválido").required("Email é obrigatório"),
-  password: Yup.string().required("Senha é obrigatória"),
+  nome: Yup.string()
+    .required("Nome é obrigatório")
+    .max(100, "Nome deve ter no máximo 100 caracteres"),
+  email: Yup.string()
+    .email("Email inválido")
+    .required("Email é obrigatório")
+    .max(100, "Email deve ter no máximo 100 caracteres"),
+  senha: Yup.string()
+    .required("Senha é obrigatória")
+    .min(6, "Senha deve ter no mínimo 6 caracteres"),
+  tipoUsuario: Yup.number()
+    .required("Tipo de usuário é obrigatório")
+    .oneOf([0, 1], "Tipo de usuário inválido"),
 });
 
 function RegisterForm() {
@@ -17,11 +39,20 @@ function RegisterForm() {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      await register(values);
-      toast.success("Registro bem-sucedido! Faça login.");
+      const response = await userService.register(values);
+      toast.success(response.message || "Cadastro realizado com sucesso!");
       navigate("/login");
     } catch (error) {
-      toast.error("Erro no registro. Tente novamente.");
+      if (
+        error.status === 400 &&
+        error.message === "Email já cadastrado no sistema"
+      ) {
+        toast.error("Email já está em uso");
+      } else if (error.status === 400) {
+        toast.error("Email e senha são obrigatórios");
+      } else {
+        toast.error("Erro no servidor. Tente novamente mais tarde.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -34,7 +65,12 @@ function RegisterForm() {
           Registrar
         </Typography>
         <Formik
-          initialValues={{ name: "", email: "", password: "" }}
+          initialValues={{
+            nome: "",
+            email: "",
+            senha: "",
+            tipoUsuario: "",
+          }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
@@ -43,11 +79,11 @@ function RegisterForm() {
               <Field
                 as={TextField}
                 label="Nome"
-                name="name"
+                name="nome"
                 fullWidth
                 margin="normal"
-                error={touched.name && !!errors.name}
-                helperText={touched.name && errors.name}
+                error={touched.nome && !!errors.nome}
+                helperText={touched.nome && errors.nome}
               />
               <Field
                 as={TextField}
@@ -62,13 +98,39 @@ function RegisterForm() {
               <Field
                 as={TextField}
                 label="Senha"
-                name="password"
+                name="senha"
                 type="password"
                 fullWidth
                 margin="normal"
-                error={touched.password && !!errors.password}
-                helperText={touched.password && errors.password}
+                error={touched.senha && !!errors.senha}
+                helperText={touched.senha && errors.senha}
               />
+              <FormControl
+                component="fieldset"
+                margin="normal"
+                error={touched.tipoUsuario && !!errors.tipoUsuario}
+              >
+                <FormLabel component="legend">Tipo de Usuário</FormLabel>
+                <Field name="tipoUsuario">
+                  {({ field }) => (
+                    <RadioGroup {...field} row>
+                      <FormControlLabel
+                        value={0}
+                        control={<Radio />}
+                        label="Administrador"
+                      />
+                      <FormControlLabel
+                        value={1}
+                        control={<Radio />}
+                        label="Regular"
+                      />
+                    </RadioGroup>
+                  )}
+                </Field>
+                {touched.tipoUsuario && errors.tipoUsuario && (
+                  <FormHelperText>{errors.tipoUsuario}</FormHelperText>
+                )}
+              </FormControl>
               <Button
                 type="submit"
                 variant="contained"
