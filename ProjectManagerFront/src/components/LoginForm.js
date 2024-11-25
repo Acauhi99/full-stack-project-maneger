@@ -12,6 +12,7 @@ import { userService } from "../services/userService";
 import { toast } from "react-toastify";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
+import { parseJwt } from "../services/userService";
 
 const validationSchema = Yup.object().shape({
   email: Yup.string()
@@ -29,16 +30,18 @@ function LoginForm() {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const response = await userService.login(values.email, values.senha);
+      const token = response.token;
+      const decodedToken = parseJwt(token);
+      
       toast.success(response.message || "Login realizado com sucesso!");
-      navigate("/projects");
-    } catch (error) {
-      if (error.status === 422) {
-        toast.error("Email ou senha incorretos");
-      } else if (error.status === 400) {
-        toast.error("Erro ao acessar banco de dados");
+      
+      if (decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] === 'Admin') {
+        navigate("/admin");
       } else {
-        toast.error("Erro no servidor. Tente novamente mais tarde.");
+        navigate("/projects");
       }
+    } catch (error) {
+      toast.error("Erro ao realizar login");
     } finally {
       setSubmitting(false);
     }
