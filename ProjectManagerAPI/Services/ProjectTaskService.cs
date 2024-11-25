@@ -53,6 +53,7 @@ public class ProjectTaskService : IProjectTaskService
             throw new ArgumentNullException(nameof(taskDto));
 
         var projectExists = await _dbContext.Projects.AnyAsync(p => p.Id == taskDto.ProjetoId).ConfigureAwait(false);
+
         if (!projectExists)
             throw new InvalidOperationException("Projeto não encontrado.");
 
