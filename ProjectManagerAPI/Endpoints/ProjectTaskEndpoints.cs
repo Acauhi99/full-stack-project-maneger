@@ -16,7 +16,7 @@ public static class ProjectTaskEndpoints
             .RequireAuthorization("Admin");
 
         app.MapPost("/tasks", CreateTask)
-            .RequireAuthorization("Admin");
+            .RequireAuthorization();
 
         app.MapPut("/tasks/{id:guid}", UpdateTask)
             .RequireAuthorization("Admin");
