@@ -174,4 +174,28 @@ public class ProjectTaskService : IProjectTaskService
 
         return true;
     }
+
+    public async Task<bool> MarkTaskAsIncompleteAsync(Guid id, Guid userId)
+    {
+        try
+        {
+            var task = await _dbContext.ProjectTask
+                .FirstOrDefaultAsync(t => t.Id == id && t.UsuarioId == userId).ConfigureAwait(false);
+
+            if (task == null)
+                return false;
+
+            task.Concluida = false;
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            return false;
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
+    }
 }
