@@ -13,7 +13,9 @@ import HomePage from "./components/HomePage";
 import RegisterForm from "./components/RegisterForm";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Header from "./components/Header";
 import { jwtDecode } from "jwt-decode";
+import { Box } from "@mui/material";
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -26,36 +28,43 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <ToastContainer />
-        <Routes>
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/register" element={<RegisterForm />} />
-          <Route path="/" element={<HomePage />} />
-          <Route
-            path="/projects"
-            element={
-              <PrivateRoute>
-                <ProjectList />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/tasks"
-            element={
-              <PrivateRoute>
-                <TaskList />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <PrivateRoute>
-                <AdminPanel />
-              </PrivateRoute>
-            }
-          />
-        </Routes>
+        <ToastContainer
+          position="bottom-center"
+          autoClose={3600}
+          style={{ width: "400px", textAlign: "center" }}
+        />
+        <Header />
+        <Box sx={{ marginTop: 10 }}>
+          <Routes>
+            <Route path="/login" element={<LoginForm />} />
+            <Route path="/register" element={<RegisterForm />} />
+            <Route path="/" element={<HomePage />} />
+            <Route
+              path="/projects"
+              element={
+                <PrivateRoute>
+                  <ProjectList />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/tasks"
+              element={
+                <PrivateRoute>
+                  <TaskList />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <PrivateRoute>
+                  <AdminPanel />
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </Box>
       </div>
     </Router>
   );
