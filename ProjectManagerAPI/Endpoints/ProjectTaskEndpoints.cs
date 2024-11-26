@@ -28,7 +28,10 @@ public static class ProjectTaskEndpoints
             .RequireAuthorization();
 
         app.MapPut("/tasks/user/complete", CompleteUserTask)
-            .RequireAuthorization("Regular");
+            .RequireAuthorization();
+
+        app.MapPut("/tasks/user/incomplete", IncompleteUserTask)
+    .RequireAuthorization();
     }
 
     private static async Task<IResult> GetAllTasks(IProjectTaskService taskService)
@@ -154,6 +157,31 @@ public static class ProjectTaskEndpoints
             return success
                 ? Results.NoContent()
                 : Results.BadRequest(new { message = "Não foi possível marcar a tarefa como concluída. Verifique se a tarefa existe e pertence a você." });
+        }
+        catch (DbUpdateException)
+        {
+            return Results.BadRequest(new { message = "Erro ao atualizar a tarefa no banco de dados." });
+        }
+        catch (FormatException)
+        {
+            return Results.BadRequest(new { message = "ID do usuário inválido." });
+        }
+    }
+
+    private static async Task<IResult> IncompleteUserTask(CompleteTaskDTO request, IProjectTaskService taskService, HttpContext context)
+    {
+        try
+        {
+            var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Results.Unauthorized();
+
+            var success = await taskService.MarkTaskAsIncompleteAsync(request.TaskId, Guid.Parse(userId))
+                .ConfigureAwait(false);
+
+            return success
+                ? Results.NoContent()
+                : Results.BadRequest(new { message = "Não foi possível marcar a tarefa como incompleta. Verifique se a tarefa existe e pertence a você." });
         }
         catch (DbUpdateException)
         {

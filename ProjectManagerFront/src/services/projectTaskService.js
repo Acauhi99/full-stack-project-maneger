@@ -31,15 +31,22 @@ export const taskService = {
 
   async createTask(taskData) {
     try {
-      const response = await api.post("/tasks", {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Não autenticado');
+      }
+      const payload = {
         titulo: taskData.titulo,
         descricao: taskData.descricao,
         projetoId: taskData.projetoId,
-        usuarioId: taskData.usuarioId,
-      });
+        usuarioId: taskData.usuarioId 
+      };
+      console.log('Sending task data:', payload);
+      const response = await api.post("/tasks", payload);
       return response.data;
     } catch (error) {
-      handleApiError(error);
+      console.error('Create task error:', error.response?.data);
+      throw error; 
     }
   },
 
@@ -63,6 +70,14 @@ export const taskService = {
   async completeTask(taskId) {
     try {
       await api.put("/tasks/user/complete", { taskId });
+    } catch (error) {
+      handleApiError(error);
+    }
+  },
+
+  async incompleteTask(taskId) {
+    try {
+      await api.put("/tasks/user/incomplete", { taskId });
     } catch (error) {
       handleApiError(error);
     }

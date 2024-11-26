@@ -11,4 +11,5 @@ public interface IProjectTaskService
     Task<bool> DeleteTaskAsync(Guid id);
     Task<IEnumerable<ProjectTaskDTO>> GetTasksByUserIdAsync(Guid userId);
     Task<bool> MarkTaskAsCompletedAsync(Guid id, Guid userId);
+    Task<bool> MarkTaskAsIncompleteAsync(Guid id, Guid userId);
 }
