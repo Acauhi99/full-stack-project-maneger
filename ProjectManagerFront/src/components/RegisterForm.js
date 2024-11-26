@@ -11,6 +11,7 @@ import {
   FormControl,
   FormLabel,
   FormHelperText,
+  Link,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { userService } from "../services/userService";
@@ -144,6 +145,15 @@ function RegisterForm() {
             </Form>
           )}
         </Formik>
+
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="body2" align="center">
+            Já possui uma conta?{" "}
+            <Link href="/login" variant="body2">
+              Voltar para Login
+            </Link>
+          </Typography>
+        </Box>
       </Box>
     </Container>
   );
