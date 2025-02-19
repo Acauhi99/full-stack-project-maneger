@@ -2,7 +2,7 @@
 
 ## 📋 Descrição
 
-O Gerenciador de Projetos é uma aplicação web construída com ASP.NET Web API e React que permite gerenciar projetos e tarefas com diferentes funções e permissões de usuário. O sistema utiliza banco de dados SQLite com Entity Framework para persistência de dados e tokens JWT para autenticação segura.
+O Gerenciador de Projetos é uma aplicação web construída com ASP.NET Web API e React que permite gerenciar projetos e tarefas com diferentes funções e permissões de usuário. O sistema utiliza banco de dados SQLite com Entity Framework para persistência de dados e tokens JWT para autenticação segura!
 
 ## 👥 Membros da Equipe
 
